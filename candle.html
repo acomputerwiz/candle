@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy 14th Birthday!</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffe6f2;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Comic Sans MS', cursive;
+    }
+    #message {
+      position: absolute;
+      top: 20px;
+      text-align: center;
+      width: 100%;
+      font-size: 2em;
+      color: #ff4081;
+      text-shadow: 1px 1px white;
+    }
+  </style>
+</head>
+<body>
+  <div id="message">🎂 Blow to make a wish! 🎂</div>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.4.2/lib/p5.min.js"></script>
+  <script>
+    let mic;
+    let candles = [];
+    let volleyballs = [];
+    let exploded = false;
+    let cakeY;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      mic = new p5.AudioIn();
+      mic.start();
+
+      cakeY = height / 2 + 100;
+      // make 14 candles
+      for (let i = 0; i < 14; i++) {
+        candles.push({
+          x: width/2 - 210 + i*30,
+          y: cakeY - 120,
+          flame: true
+        });
+      }
+    }
+
+    function draw() {
+      background('#ffe6f2');
+      drawCake();
+
+      let vol = mic.getLevel();
+
+      // If loud enough and not already exploded
+      if (vol > 0.2 && !exploded) {
+        exploded = true;
+        for (let i = 0; i < 20; i++) {
+          volleyballs.push({
+            x: width/2,
+            y: cakeY - 100,
+            dx: random(-6, 6),
+            dy: random(-10, -5),
+            r: 20
+          });
+        }
+        document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
+      }
+
+      // Draw volleyballs if exploded
+      if (exploded) {
+        for (let ball of volleyballs) {
+          fill(255);
+          stroke(0);
+          ellipse(ball.x, ball.y, ball.r*2);
+          // Simple volleyball pattern
+          stroke(150);
+          line(ball.x - ball.r, ball.y, ball.x + ball.r, ball.y);
+          line(ball.x, ball.y - ball.r, ball.x, ball.y + ball.r);
+          ball.x += ball.dx;
+          ball.y += ball.dy;
+          ball.dy += 0.4; // gravity
+          if (ball.y + ball.r > height) {
+            ball.y = height - ball.r;
+            ball.dy *= -0.7;
+          }
+        }
+      }
+    }
+
+    function drawCake() {
+      // Cake base
+      noStroke();
+      fill('#ff99aa');
+      rectMode(CENTER);
+      rect(width/2, cakeY, 400, 150, 20);
+
+      // Frosting
+      fill('#fff0f5');
+      rect(width/2, cakeY - 80, 400, 20, 10);
+
+      // Candles
+      if (!exploded) {
+        for (let c of candles) {
+          fill('#66ccff');
+          rect(c.x, c.y, 10, 40);
+          if (c.flame) {
+            fill('#ffcc00');
+            ellipse(c.x, c.y - 25, 10, 15);
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
