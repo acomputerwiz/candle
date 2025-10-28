@@ -56,7 +56,7 @@
     let ballImg;
 
     function preload() {
-      // Use emoji rendered to an offscreen canvas
+      // render the volleyball emoji into an image buffer
       ballImg = createGraphics(64, 64);
       ballImg.textSize(48);
       ballImg.textAlign(CENTER, CENTER);
@@ -65,31 +65,27 @@
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
-      noLoop(); // wait for start
+      noLoop();
 
       cakeY = height / 2 + 100;
       for (let i = 0; i < 14; i++) {
         candles.push({
-          x: width/2 - 210 + i*30,
+          x: width / 2 - 210 + i * 30,
           y: cakeY - 120,
           flame: true
         });
       }
 
-      // Start button logic
       document.getElementById("startBtn").addEventListener("click", async () => {
-        // Resume audio context first (important for Chrome)
         userStartAudio();
-
         mic = new p5.AudioIn();
         try {
-          await mic.start(); // triggers permission prompt
+          await mic.start(); // this triggers the mic permission prompt
         } catch (err) {
           console.log("Mic permission denied or unavailable.");
         }
-
         started = true;
-        loop(); // start drawing
+        loop();
       });
     }
 
@@ -101,21 +97,29 @@
 
       let vol = mic ? mic.getLevel() : 0;
 
-      // Loud enough → boom
       if (vol > 0.2 && !exploded) {
         triggerExplosion();
       }
 
       if (exploded) {
         for (let ball of volleyballs) {
+          push();
+          translate(ball.x, ball.y);
+          rotate(ball.angle);
           imageMode(CENTER);
-          image(ballImg, ball.x, ball.y, ball.r*2, ball.r*2);
+          image(ballImg, 0, 0, ball.r * 2, ball.r * 2);
+          pop();
+
           ball.x += ball.dx;
           ball.y += ball.dy;
           ball.dy += 0.4; // gravity
+          ball.angle += ball.spin;
+
+          // bounce
           if (ball.y + ball.r > height) {
             ball.y = height - ball.r;
             ball.dy *= -0.7;
+            ball.dx *= 0.9;
           }
         }
       }
@@ -125,10 +129,10 @@
       noStroke();
       fill('#ff99aa');
       rectMode(CENTER);
-      rect(width/2, cakeY, 400, 150, 20);
+      rect(width / 2, cakeY, 400, 150, 20);
 
       fill('#fff0f5');
-      rect(width/2, cakeY - 80, 400, 20, 10);
+      rect(width / 2, cakeY - 80, 400, 20, 10);
 
       if (!exploded) {
         for (let c of candles) {
@@ -142,9 +146,13 @@
       }
     }
 
-    // Click/touch cake = explode
     function mousePressed() {
-      if (!exploded && mouseY > cakeY - 100 && mouseY < cakeY + 100 && abs(mouseX - width/2) < 200) {
+      if (
+        !exploded &&
+        mouseY > cakeY - 100 &&
+        mouseY < cakeY + 100 &&
+        abs(mouseX - width / 2) < 200
+      ) {
         triggerExplosion();
       }
     }
@@ -153,14 +161,17 @@
       exploded = true;
       for (let i = 0; i < 20; i++) {
         volleyballs.push({
-          x: width/2,
+          x: width / 2,
           y: cakeY - 100,
           dx: random(-6, 6),
           dy: random(-10, -5),
-          r: random(20, 30)
+          r: random(20, 30),
+          angle: random(TWO_PI),
+          spin: random(-0.2, 0.2)
         });
       }
-      document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
+      document.getElementById("message").innerText =
+        "🏐 Boom! Happy 14th Birthday! 🏐";
     }
   </script>
 </body>
