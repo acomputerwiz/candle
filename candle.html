@@ -25,11 +25,26 @@
       color: #ff4081;
       text-shadow: 1px 1px white;
     }
+    #startBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5em;
+      padding: 15px 25px;
+      background: #ff80aa;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
-  <div id="message">Blow to make a wish! 
-    <size=100>🎂</div>
+  <div id="message">Blow to make a wish! 🎂</div>
+  <button id="startBtn">Start</button>
+
   <script src="https://cdn.jsdelivr.net/npm/p5@1.4.2/lib/p5.min.js"></script>
   <script>
     let mic;
@@ -37,11 +52,11 @@
     let volleyballs = [];
     let exploded = false;
     let cakeY;
+    let started = false;
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
-      mic = new p5.AudioIn();
-      mic.start();
+      noLoop(); // Wait until user clicks Start
 
       cakeY = height / 2 + 100;
       // make 14 candles
@@ -52,27 +67,35 @@
           flame: true
         });
       }
+
+      // Start button logic
+      document.getElementById("startBtn").addEventListener("click", async () => {
+        try {
+          mic = new p5.AudioIn();
+          await mic.start(); // Request permission
+          started = true;
+          document.getElementById("startBtn").style.display = "none";
+          loop(); // Start the draw loop
+        } catch (err) {
+          alert("Microphone access denied. You can still click the cake!");
+          started = true;
+          document.getElementById("startBtn").style.display = "none";
+          loop();
+        }
+      });
     }
 
     function draw() {
       background('#ffe6f2');
       drawCake();
 
-      let vol = mic.getLevel();
+      if (!started) return;
+
+      let vol = mic ? mic.getLevel() : 0;
 
       // If loud enough and not already exploded
       if (vol > 0.2 && !exploded) {
-        exploded = true;
-        for (let i = 0; i < 20; i++) {
-          volleyballs.push({
-            x: width/2,
-            y: cakeY - 100,
-            dx: random(-6, 6),
-            dy: random(-10, -5),
-            r: 20
-          });
-        }
-        document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
+        triggerExplosion();
       }
 
       // Draw volleyballs if exploded
@@ -119,7 +142,27 @@
         }
       }
     }
+
+    // Trigger when clicking/touching cake
+    function mousePressed() {
+      if (!exploded && mouseY > cakeY - 100 && mouseY < cakeY + 100 && abs(mouseX - width/2) < 200) {
+        triggerExplosion();
+      }
+    }
+
+    function triggerExplosion() {
+      exploded = true;
+      for (let i = 0; i < 20; i++) {
+        volleyballs.push({
+          x: width/2,
+          y: cakeY - 100,
+          dx: random(-6, 6),
+          dy: random(-10, -5),
+          r: 20
+        });
+      }
+      document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
+    }
   </script>
 </body>
 </html>
-
