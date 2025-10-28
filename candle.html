@@ -101,13 +101,7 @@
       // Draw volleyballs if exploded
       if (exploded) {
         for (let ball of volleyballs) {
-          fill(255);
-          stroke(0);
-          ellipse(ball.x, ball.y, ball.r*2);
-          // Simple volleyball pattern
-          stroke(150);
-          line(ball.x - ball.r, ball.y, ball.x + ball.r, ball.y);
-          line(ball.x, ball.y - ball.r, ball.x, ball.y + ball.r);
+          drawVolleyball(ball.x, ball.y, ball.r);
           ball.x += ball.dx;
           ball.y += ball.dy;
           ball.dy += 0.4; // gravity
@@ -134,35 +128,4 @@
       if (!exploded) {
         for (let c of candles) {
           fill('#66ccff');
-          rect(c.x, c.y, 10, 40);
-          if (c.flame) {
-            fill('#ffcc00');
-            ellipse(c.x, c.y - 25, 10, 15);
-          }
-        }
-      }
-    }
-
-    // Trigger when clicking/touching cake
-    function mousePressed() {
-      if (!exploded && mouseY > cakeY - 100 && mouseY < cakeY + 100 && abs(mouseX - width/2) < 200) {
-        triggerExplosion();
-      }
-    }
-
-    function triggerExplosion() {
-      exploded = true;
-      for (let i = 0; i < 20; i++) {
-        volleyballs.push({
-          x: width/2,
-          y: cakeY - 100,
-          dx: random(-6, 6),
-          dy: random(-10, -5),
-          r: 20
-        });
-      }
-      document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
-    }
-  </script>
-</body>
-</html>
+          rect(c.x,
