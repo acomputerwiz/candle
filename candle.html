@@ -53,18 +53,11 @@
     let exploded = false;
     let cakeY;
     let started = false;
-    let ballImg;
-
-    function preload() {
-      // render the volleyball emoji into an image buffer
-      ballImg = createGraphics(64, 64);
-      ballImg.textSize(48);
-      ballImg.textAlign(CENTER, CENTER);
-      ballImg.text("🏐", 32, 32);
-    }
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
+      textSize(48);
+      textAlign(CENTER, CENTER);
       noLoop();
 
       cakeY = height / 2 + 100;
@@ -77,10 +70,10 @@
       }
 
       document.getElementById("startBtn").addEventListener("click", async () => {
-        userStartAudio();
+        userStartAudio(); // unlock audio context
         mic = new p5.AudioIn();
         try {
-          await mic.start(); // this triggers the mic permission prompt
+          await mic.start(); // triggers mic permission prompt
         } catch (err) {
           console.log("Mic permission denied or unavailable.");
         }
@@ -101,13 +94,13 @@
         triggerExplosion();
       }
 
+      // Animate volleyballs
       if (exploded) {
         for (let ball of volleyballs) {
           push();
           translate(ball.x, ball.y);
           rotate(ball.angle);
-          imageMode(CENTER);
-          image(ballImg, 0, 0, ball.r * 2, ball.r * 2);
+          text("🏐", 0, 0);
           pop();
 
           ball.x += ball.dx;
@@ -116,8 +109,8 @@
           ball.angle += ball.spin;
 
           // bounce
-          if (ball.y + ball.r > height) {
-            ball.y = height - ball.r;
+          if (ball.y > height - 25) {
+            ball.y = height - 25;
             ball.dy *= -0.7;
             ball.dx *= 0.9;
           }
@@ -165,9 +158,8 @@
           y: cakeY - 100,
           dx: random(-6, 6),
           dy: random(-10, -5),
-          r: random(20, 30),
           angle: random(TWO_PI),
-          spin: random(-0.2, 0.2)
+          spin: random(-0.3, 0.3)
         });
       }
       document.getElementById("message").innerText =
