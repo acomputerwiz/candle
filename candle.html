@@ -27,17 +27,17 @@
     }
     #startBtn {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.5em;
-      padding: 15px 25px;
+      top: 15px;
+      left: 15px;
+      font-size: 1em;
+      padding: 10px 16px;
       background: #ff80aa;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
       color: white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      z-index: 10;
     }
   </style>
 </head>
@@ -53,13 +53,21 @@
     let exploded = false;
     let cakeY;
     let started = false;
+    let ballImg;
+
+    function preload() {
+      // Use emoji rendered to an offscreen canvas
+      ballImg = createGraphics(64, 64);
+      ballImg.textSize(48);
+      ballImg.textAlign(CENTER, CENTER);
+      ballImg.text("🏐", 32, 32);
+    }
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
-      noLoop(); // Wait until user clicks Start
+      noLoop(); // wait for start
 
       cakeY = height / 2 + 100;
-      // make 14 candles
       for (let i = 0; i < 14; i++) {
         candles.push({
           x: width/2 - 210 + i*30,
@@ -70,18 +78,18 @@
 
       // Start button logic
       document.getElementById("startBtn").addEventListener("click", async () => {
+        // Resume audio context first (important for Chrome)
+        userStartAudio();
+
+        mic = new p5.AudioIn();
         try {
-          mic = new p5.AudioIn();
-          await mic.start(); // Request permission
-          started = true;
-          document.getElementById("startBtn").style.display = "none";
-          loop(); // Start the draw loop
+          await mic.start(); // triggers permission prompt
         } catch (err) {
-          alert("Microphone access denied. You can still click the cake!");
-          started = true;
-          document.getElementById("startBtn").style.display = "none";
-          loop();
+          console.log("Mic permission denied or unavailable.");
         }
+
+        started = true;
+        loop(); // start drawing
       });
     }
 
@@ -93,15 +101,15 @@
 
       let vol = mic ? mic.getLevel() : 0;
 
-      // If loud enough and not already exploded
+      // Loud enough → boom
       if (vol > 0.2 && !exploded) {
         triggerExplosion();
       }
 
-      // Draw volleyballs if exploded
       if (exploded) {
         for (let ball of volleyballs) {
-          drawVolleyball(ball.x, ball.y, ball.r);
+          imageMode(CENTER);
+          image(ballImg, ball.x, ball.y, ball.r*2, ball.r*2);
           ball.x += ball.dx;
           ball.y += ball.dy;
           ball.dy += 0.4; // gravity
@@ -114,17 +122,14 @@
     }
 
     function drawCake() {
-      // Cake base
       noStroke();
       fill('#ff99aa');
       rectMode(CENTER);
       rect(width/2, cakeY, 400, 150, 20);
 
-      // Frosting
       fill('#fff0f5');
       rect(width/2, cakeY - 80, 400, 20, 10);
 
-      // Candles
       if (!exploded) {
         for (let c of candles) {
           fill('#66ccff');
@@ -137,27 +142,7 @@
       }
     }
 
-    // Draw a volleyball with simple curved panels
-    function drawVolleyball(x, y, r) {
-      push();
-      translate(x, y);
-      stroke(80);
-      strokeWeight(2);
-      fill(255);
-      ellipse(0, 0, r * 2); // base ball
-
-      noFill();
-      stroke(100);
-      strokeWeight(1.5);
-      // Panel lines
-      arc(0, 0, r * 1.8, r * 1.8, PI/3, 4*PI/3);
-      arc(0, 0, r * 1.8, r * 1.8, -2*PI/3, PI/3);
-      arc(0, 0, r * 1.2, r * 1.2, 0, PI);
-      arc(0, 0, r * 1.2, r * 1.2, PI, TWO_PI);
-      pop();
-    }
-
-    // Trigger when clicking/touching cake
+    // Click/touch cake = explode
     function mousePressed() {
       if (!exploded && mouseY > cakeY - 100 && mouseY < cakeY + 100 && abs(mouseX - width/2) < 200) {
         triggerExplosion();
@@ -172,7 +157,7 @@
           y: cakeY - 100,
           dx: random(-6, 6),
           dy: random(-10, -5),
-          r: random(15, 25)
+          r: random(20, 30)
         });
       }
       document.getElementById("message").innerText = "🏐 Boom! Happy 14th Birthday! 🏐";
